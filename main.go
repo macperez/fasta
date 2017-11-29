@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	str "strings"
 	uni "unicode"
 )
+
+const Reference string = "referen"
 
 func check(e error) {
 	if e != nil {
@@ -15,25 +17,51 @@ func check(e error) {
 	}
 }
 
-func OpenReferenceFile(folderPath string) (os.FileInfo, []os.FileInfo) {
-	files, err := ioutil.ReadDir(folderPath)
-	check(err)
-	var fastas []os.FileInfo
-	fmt.Printf("here")
-	var reference os.FileInfo
-	for _, f := range files {
-		if str.Contains(f.Name(), "referen") {
-			reference = f
-		} else if uni.IsDigit(rune(f.Name()[0])) {
-			fastas = append(fastas, f)
+/*
+OpenReferenceFile lookfor the reference file and all the fasta files
+*/
+func OpenReferenceFile(folderPath string) (string, []string) {
+	//files, err := ioutil.ReadDir(folderPath)
+	// walk all files in directory
+
+	var fastas []string
+	var reference string
+	filepath.Walk(folderPath, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			if str.Contains(info.Name(), "referen") {
+				reference = filepath.Join(path, info.Name())
+			} else if uni.IsDigit(rune(info.Name()[0])) {
+				fastas = append(fastas, filepath.Join(path, info.Name()))
+			}
+
 		}
 
-	}
+		return nil
+	})
+
 	return reference, fastas
 }
 
+// func ReadFirstLine(file os.FileInfo) (string, error) {
+// 	file, err := os.Open(file)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	defer file.Close()
+//
+// 	var line string
+// 	scanner := bufio.NewScanner(file)
+// 	for scanner.Scan() {
+//
+// 		line = scanner.Text()
+// 	}
+// 	return line, scanner.Err()
+// }
+
 func main() {
-	// capturamos argumentos de la carpeta
+
+	// The folder name that constains the fasta files is stored here
+	// The same for output path in which it will be written the pattern
 	var folderPath string
 	var outputPath string
 
@@ -45,18 +73,29 @@ func main() {
 		fmt.Println("Incorrect number of param Usage: fasta /path/of/folder output.txt")
 	}
 
-	fmt.Println("Folder: ", folderPath)
-	fmt.Println("output: ", outputPath)
-	// abrimos el fichero de referencia y lo procesamos
-	// reference, fastas := OpenReferenceFile(folderPath)
+	// Obtaining the reference file and a slice with all the fasta files found
 	ref, fastas := OpenReferenceFile(folderPath)
-	fmt.Println("reference file is ", ref.Name())
-	fmt.Println("------------------------------")
-	for _, fas := range fastas {
-		fmt.Println(">>", fas.Name())
+	if ref == "" {
+		fmt.Println("Error: There is no reference file to compare with")
+		fmt.Println("Nothing to create")
+		os.Exit(1)
 	}
-	// abrimoms fichero salida
-	// recorremos todos ficheros
-	// por cada fichero se compara y se escribe en la salida.
-	// se cierra fichero de salida
+	// Opening output file
+	f, err := os.Create(outputPath)
+	check(err)
+	//It’s idiomatic to defer a Close immediately after opening a file.
+	defer f.Close()
+
+	for _, fas := range fastas {
+		// we read the first line (and the only one)
+		fmt.Println(">>", fas)
+		// line, err := ReadFirstLine(fas)
+		// check(err)
+		// fmt.Println(line)
+		// fmt.Println("-------------------------------------------------------")
+
+	}
+	// iterate over all the files
+	// for each file comparing its first line and we write one line in the output
+	// closing output file
 }
