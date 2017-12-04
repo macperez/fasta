@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"os"
@@ -9,7 +10,7 @@ import (
 	uni "unicode"
 )
 
-const Reference string = "referen"
+const reference string = "referen"
 
 func check(e error) {
 	if e != nil {
@@ -42,21 +43,22 @@ func OpenReferenceFile(folderPath string) (string, []string) {
 	return reference, fastas
 }
 
-// func ReadFirstLine(file os.FileInfo) (string, error) {
-// 	file, err := os.Open(file)
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	defer file.Close()
-//
-// 	var line string
-// 	scanner := bufio.NewScanner(file)
-// 	for scanner.Scan() {
-//
-// 		line = scanner.Text()
-// 	}
-// 	return line, scanner.Err()
-// }
+func readFirstLine(filePath string) (string, error) {
+	file, err := os.Open(filePath)
+	fmt.Println(">>", filePath)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	var line string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line = scanner.Text()
+	}
+	return line, scanner.Err()
+
+}
 
 func main() {
 
@@ -70,7 +72,7 @@ func main() {
 		folderPath = args[1]
 		outputPath = args[2]
 	} else {
-		fmt.Println("Incorrect number of param Usage: fasta /path/of/folder output.txt")
+		fmt.Println("Incorrects number of param Usage: fasta /path/of/folder output.txt")
 	}
 
 	// Obtaining the reference file and a slice with all the fasta files found
@@ -81,17 +83,18 @@ func main() {
 		os.Exit(1)
 	}
 	// Opening output file
-	f, err := os.Create(outputPath)
+	output, err := os.Create(outputPath)
+	fmt.Println(">>", output)
 	check(err)
 	//It’s idiomatic to defer a Close immediately after opening a file.
-	defer f.Close()
+	defer output.Close()
 
 	for _, fas := range fastas {
 		// we read the first line (and the only one)
-		fmt.Println(">>", fas)
-		// line, err := ReadFirstLine(fas)
-		// check(err)
-		// fmt.Println(line)
+		//line, err := readFirstLine(fas)
+
+		check(err)
+		fmt.Println(fas)
 		// fmt.Println("-------------------------------------------------------")
 
 	}
