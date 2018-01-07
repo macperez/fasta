@@ -106,7 +106,8 @@ func main() {
 		folderPath = args[1]
 		outputPath = args[2]
 	} else {
-		fmt.Println("Incorrects number of param Usage: fasta /path/of/folder output.txt")
+		fmt.Println("\nIncorrects number of param Usage: fasta /path/of/folder output.txt\n")
+		os.Exit(1)
 	}
 
 	// Obtaining the reference file and a slice with all the fasta files found
